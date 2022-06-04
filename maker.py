@@ -28,9 +28,12 @@ for i in music:
     duration = math.ceil(librosa.get_duration(filename=i))
     print(f"开始为- {i} -生成图片视频...")
     #生成和音频一个上传的视频
-    os.system(f"ffmpeg -r {FPS} -loop 1 -i {use_pic} -pix_fmt yuv420p -vcodec libx264 -b:v 1600k \
-         -r:v 25 -preset medium -crf 30 -s {width}x{height} -r 25 -t {duration} out.mp4  -hwaccel \
-             nvdec -hwaccel_output_format cuda")
+    # os.system(f"ffmpeg -hwaccel cuvid -r {FPS} -loop 1 -i {use_pic} -c:v h264_nvenc -b:v 1600k \
+        #  -r:v 25 -preset medium -crf 30 -s {width}x{height} -r 25 -t {duration} out.mp4")
+
+    # os.system(f"ffmpeg -vsync 0 -hwaccel cuvid -c:v mjpeg_cuvid -framerate {FPS} -loop 1 -i {use_pic} -b:v 1600k -t {duration} -c:v h264_nvenc out.mp4")
+    os.system(f"ffmpeg -vsync 0 -hwaccel cuvid -c:v mjpeg_cuvid -framerate {FPS} -loop 1 -i {use_pic} -b:v 1600k -c:a copy -vf scale_cuda={width}:{height} -t {duration} -c:v h264_nvenc out.mp4")
+    
     print(f"- {i} -图片视频生成完毕...")
     os.system(f'ffmpeg -i out.mp4 -i "{i}" -c:v copy -c:a aac -strict experimental "{i.replace(".mp3","")}.mp4" \
         -hwaccel nvdec -hwaccel_output_format cuda')
